@@ -11,6 +11,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class ProductLoopService {
 
+    /**
+     * Back-compat alias.
+     *
+     * Some parts of the codebase (widget renderer / AJAX handler) call
+     * ProductLoopService::query_products(). The canonical method is
+     * query_ids_for_page().
+     *
+     * Returns: [ 'ids' => int[], 'current_page' => int, 'max_pages' => int, 'has_more' => bool ]
+     */
+    public static function query_products( array $raw_settings, int $paged ): array {
+        return self::query_ids_for_page( $raw_settings, $paged );
+    }
+
     public static function sanitize_settings( array $raw ): array {
         $out = [];
 

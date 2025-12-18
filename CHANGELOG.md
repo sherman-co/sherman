@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [0.2.7.1] - 2025-12-18
+### Fixed
+- Fixed a fatal error in Sherman Product Loop where `ProductLoopService::query_products()` was called but not defined.
+
 ## [0.2.7] - 2025-12-18
 ### Added
 - Sherman Product Loop: Pagination modes and front-end loading
