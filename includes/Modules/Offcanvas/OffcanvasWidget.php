@@ -10,7 +10,7 @@ final class OffcanvasWidget extends Widget_Base {
     public function get_name() { return 'sherman_offcanvas'; }
     public function get_title() { return __( 'Sherman Offcanvas', 'sherman-core' ); }
     public function get_icon() { return 'eicon-menu-bar'; }
-    public function get_categories() { return [ 'general' ]; }
+    public function get_categories() { return [ 'sherman-core' ]; }
 
     public function get_script_depends() { return [ 'sherman-core-offcanvas' ]; }
     public function get_style_depends() { return [ 'sherman-core-offcanvas' ]; }

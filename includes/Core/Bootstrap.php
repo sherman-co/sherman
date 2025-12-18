@@ -12,6 +12,9 @@ final class Bootstrap {
             dirname( plugin_basename( SHERMAN_CORE_NEXT_FILE ) ) . '/languages'
         );
 
+        Assets::init();
+        ElementorSupport::init();
+
         ( new Admin() )->init();
 
         foreach ( ModuleRegistry::sort_modules( ModuleRegistry::modules() ) as $module ) {
