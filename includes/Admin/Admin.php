@@ -172,6 +172,12 @@ final class Admin {
     }
 
     private function render_module_settings( array $manifest, array $settings ): void {
+        $module_id = $manifest['id'] ?? '';
+        if ( $module_id === 'templates' ) {
+            $this->render_templates_settings( $settings );
+            return;
+        }
+
         $groups = (array) ( $manifest['settings_groups'] ?? [] );
         if ( empty( $groups ) ) {
             echo '<p class="description">' . esc_html__( 'This module has no configurable settings yet.', 'sherman-core' ) . '</p>';
@@ -190,5 +196,61 @@ final class Admin {
             echo '<p class="description">' . esc_html__( 'Fields will be added here as the module is migrated.', 'sherman-core' ) . '</p>';
             echo '</div>';
         }
+    }
+
+    private function render_templates_settings( array $settings ): void {
+        $single_en = $settings['modules']['templates']['single_product']['enabled'] ?? 'no';
+        $single_id = (int) ( $settings['modules']['templates']['single_product']['template_id'] ?? 0 );
+        $archive_en = $settings['modules']['templates']['archive_product']['enabled'] ?? 'no';
+        $archive_id = (int) ( $settings['modules']['templates']['archive_product']['template_id'] ?? 0 );
+
+        // Elementor templates (Elementor Library).
+        $options = [ 0 => __( '— Select template —', 'sherman-core' ) ];
+        $templates = get_posts( [
+            'post_type'      => 'elementor_library',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'orderby'        => 'title',
+            'order'          => 'ASC',
+        ] );
+        foreach ( (array) $templates as $tpl ) {
+            $options[ (int) $tpl->ID ] = $tpl->post_title;
+        }
+
+        echo '<div class="sherman-core-group" data-group-id="basics">';
+        echo '<h4 class="sherman-core-group__title">' . esc_html__( 'WooCommerce templates', 'sherman-core' ) . '</h4>';
+        echo '<p class="sherman-core-group__desc">' . esc_html__( 'Select Elementor templates for WooCommerce single product and product archive pages.', 'sherman-core' ) . '</p>';
+
+        echo '<table class="form-table" role="presentation"><tbody>';
+
+        // Single product.
+        echo '<tr><th scope="row">' . esc_html__( 'Single product', 'sherman-core' ) . '</th><td>';
+        echo '<input type="hidden" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][single_product][enabled]" value="no">';
+        echo '<label><input type="checkbox" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][single_product][enabled]" value="yes" ' . checked( $single_en, 'yes', false ) . '> ' . esc_html__( 'Enable override', 'sherman-core' ) . '</label>';
+        echo '<br><br>';
+        echo '<select name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][single_product][template_id]">';
+        foreach ( $options as $id => $title ) {
+            echo '<option value="' . esc_attr( (string) $id ) . '" ' . selected( (int) $id, $single_id, false ) . '>' . esc_html( $title ) . '</option>';
+        }
+        echo '</select>';
+        echo '</td></tr>';
+
+        // Product archive.
+        echo '<tr><th scope="row">' . esc_html__( 'Product archive', 'sherman-core' ) . '</th><td>';
+        echo '<input type="hidden" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][archive_product][enabled]" value="no">';
+        echo '<label><input type="checkbox" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][archive_product][enabled]" value="yes" ' . checked( $archive_en, 'yes', false ) . '> ' . esc_html__( 'Enable override', 'sherman-core' ) . '</label>';
+        echo '<br><br>';
+        echo '<select name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][archive_product][template_id]">';
+        foreach ( $options as $id => $title ) {
+            echo '<option value="' . esc_attr( (string) $id ) . '" ' . selected( (int) $id, $archive_id, false ) . '>' . esc_html( $title ) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">' . esc_html__( 'Applies to Shop, product category, and product tag archives.', 'sherman-core' ) . '</p>';
+        echo '</td></tr>';
+
+        echo '</tbody></table>';
+
+        echo '<p class="description">' . esc_html__( 'Header/Footer template selection is not provided here. For full theme header/footer control, use Elementor Theme Builder (Elementor Pro).', 'sherman-core' ) . '</p>';
+        echo '</div>';
     }
 }

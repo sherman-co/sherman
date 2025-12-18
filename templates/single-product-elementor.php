@@ -16,7 +16,16 @@ if ( function_exists( 'is_woocommerce' ) ) {
 }
 
 // 1) Get Elementor template ID from plugin settings.
-$template_id = (int) get_option( 'sherman_core_product_template_id', 0 );
+$template_id = 0;
+
+// Prefer the new unified settings array, fall back to legacy options.
+if ( class_exists( '\ShermanCore\Core\Settings' ) ) {
+     = \ShermanCoreCoreSettings::get_all();
+     = (int) (  ?? 0 );
+}
+if ( !  ) {
+     = (int) get_option( 'sherman_core_product_template_id', 0 );
+}
 
 // 2) Allow overriding the template ID via filter (for advanced customization).
 $template_id = (int) apply_filters( 'sherman_core_product_template_id', $template_id );

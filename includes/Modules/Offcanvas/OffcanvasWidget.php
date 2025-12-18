@@ -80,6 +80,45 @@ final class OffcanvasWidget extends Widget_Base {
 
         $this->start_controls_section( 'section_style', [ 'label' => __( 'Style', 'sherman-core' ), 'tab' => Controls_Manager::TAB_STYLE ] );
 
+
+        $this->add_responsive_control( 'trigger_icon_size', [
+            'label' => __( 'Trigger icon size', 'sherman-core' ),
+            'type' => Controls_Manager::SLIDER,
+            'size_units' => [ 'px', 'em', 'rem' ],
+            'range' => [
+                'px'  => [ 'min' => 8, 'max' => 120 ],
+                'em'  => [ 'min' => 0.5, 'max' => 8 ],
+                'rem' => [ 'min' => 0.5, 'max' => 8 ],
+            ],
+            'selectors' => [
+                '{{WRAPPER}} .sle-offcanvas__trigger-icon i'   => 'font-size: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .sle-offcanvas__trigger-icon svg' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+            ],
+            'condition' => [
+                'trigger_icon[value]!' => '',
+            ],
+        ] );
+
+        $this->add_control( 'trigger_text_color', [
+            'label' => __( 'Trigger text color', 'sherman-core' ),
+            'type' => Controls_Manager::COLOR,
+            'selectors' => [
+                '{{WRAPPER}} .sle-offcanvas__trigger-text' => 'color: {{VALUE}};',
+            ],
+            'condition' => [
+                'show_text' => 'yes',
+            ],
+        ] );
+
+        $this->add_group_control( Group_Control_Typography::get_type(), [
+            'name' => 'trigger_text_typography',
+            'label' => __( 'Trigger text typography', 'sherman-core' ),
+            'selector' => '{{WRAPPER}} .sle-offcanvas__trigger-text',
+            'condition' => [
+                'show_text' => 'yes',
+            ],
+        ] );
+
         $this->add_responsive_control( 'panel_width', [
             'label' => __( 'Panel width', 'sherman-core' ),
             'type' => Controls_Manager::SLIDER,
