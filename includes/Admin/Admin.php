@@ -204,6 +204,14 @@ final class Admin {
         $archive_en = $settings['modules']['templates']['archive_product']['enabled'] ?? 'no';
         $archive_id = (int) ( $settings['modules']['templates']['archive_product']['template_id'] ?? 0 );
 
+        $header_en = $settings['modules']['templates']['header']['enabled'] ?? 'no';
+        $header_id = (int) ( $settings['modules']['templates']['header']['template_id'] ?? 0 );
+        $header_scope = (string) ( $settings['modules']['templates']['header']['scope'] ?? 'woocommerce' );
+
+        $footer_en = $settings['modules']['templates']['footer']['enabled'] ?? 'no';
+        $footer_id = (int) ( $settings['modules']['templates']['footer']['template_id'] ?? 0 );
+        $footer_scope = (string) ( $settings['modules']['templates']['footer']['scope'] ?? 'woocommerce' );
+
         // Elementor templates (Elementor Library).
         $options = [ 0 => __( '— Select template —', 'sherman-core' ) ];
         $templates = get_posts( [
@@ -248,9 +256,48 @@ final class Admin {
         echo '<p class="description">' . esc_html__( 'Applies to Shop, product category, and product tag archives.', 'sherman-core' ) . '</p>';
         echo '</td></tr>';
 
+        // Header override.
+        echo '<tr><th scope="row">' . esc_html__( 'Header override', 'sherman-core' ) . '</th><td>';
+        echo '<input type="hidden" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][header][enabled]" value="no">';
+        echo '<label><input type="checkbox" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][header][enabled]" value="yes" ' . checked( $header_en, 'yes', false ) . '> ' . esc_html__( 'Enable override', 'sherman-core' ) . '</label>';
+        echo '<br><br>';
+        echo '<select name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][header][template_id]">';
+        foreach ( $options as $id => $title ) {
+            echo '<option value="' . esc_attr( (string) $id ) . '" ' . selected( (int) $id, $header_id, false ) . '>' . esc_html( $title ) . '</option>';
+        }
+        echo '</select>';
+        echo '<br><br>';
+        echo '<label>' . esc_html__( 'Scope', 'sherman-core' ) . ': ';
+        echo '<select name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][header][scope]">';
+        echo '<option value="woocommerce" ' . selected( $header_scope, 'woocommerce', false ) . '>' . esc_html__( 'WooCommerce pages only', 'sherman-core' ) . '</option>';
+        echo '<option value="global" ' . selected( $header_scope, 'global', false ) . '>' . esc_html__( 'Entire site', 'sherman-core' ) . '</option>';
+        echo '</select>';
+        echo '</label>';
+        echo '<p class="description">' . esc_html__( 'Replaces the theme header with an Elementor template within overridden pages. If you choose “Entire site”, you may conflict with your theme/Elementor Theme Builder.', 'sherman-core' ) . '</p>';
+        echo '</td></tr>';
+
+        // Footer override.
+        echo '<tr><th scope="row">' . esc_html__( 'Footer override', 'sherman-core' ) . '</th><td>';
+        echo '<input type="hidden" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][footer][enabled]" value="no">';
+        echo '<label><input type="checkbox" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][footer][enabled]" value="yes" ' . checked( $footer_en, 'yes', false ) . '> ' . esc_html__( 'Enable override', 'sherman-core' ) . '</label>';
+        echo '<br><br>';
+        echo '<select name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][footer][template_id]">';
+        foreach ( $options as $id => $title ) {
+            echo '<option value="' . esc_attr( (string) $id ) . '" ' . selected( (int) $id, $footer_id, false ) . '>' . esc_html( $title ) . '</option>';
+        }
+        echo '</select>';
+        echo '<br><br>';
+        echo '<label>' . esc_html__( 'Scope', 'sherman-core' ) . ': ';
+        echo '<select name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][footer][scope]">';
+        echo '<option value="woocommerce" ' . selected( $footer_scope, 'woocommerce', false ) . '>' . esc_html__( 'WooCommerce pages only', 'sherman-core' ) . '</option>';
+        echo '<option value="global" ' . selected( $footer_scope, 'global', false ) . '>' . esc_html__( 'Entire site', 'sherman-core' ) . '</option>';
+        echo '</select>';
+        echo '</label>';
+        echo '<p class="description">' . esc_html__( 'Replaces the theme footer with an Elementor template within overridden pages. If you choose “Entire site”, you may conflict with your theme/Elementor Theme Builder.', 'sherman-core' ) . '</p>';
+        echo '</td></tr>';
+
         echo '</tbody></table>';
 
-        echo '<p class="description">' . esc_html__( 'Header/Footer template selection is not provided here. For full theme header/footer control, use Elementor Theme Builder (Elementor Pro).', 'sherman-core' ) . '</p>';
         echo '</div>';
     }
 }

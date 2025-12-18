@@ -35,6 +35,12 @@ final class Settings {
                     'enabled' => 'yes',
                     'single_product'  => [ 'enabled' => 'no', 'template_id' => 0 ],
                     'archive_product' => [ 'enabled' => 'no', 'template_id' => 0 ],
+                    // Header/Footer overrides using Elementor templates.
+                    // Scope can be:
+                    // - woocommerce: only apply on WooCommerce pages
+                    // - global: apply site-wide (use with care)
+                    'header' => [ 'enabled' => 'no', 'template_id' => 0, 'scope' => 'woocommerce' ],
+                    'footer' => [ 'enabled' => 'no', 'template_id' => 0, 'scope' => 'woocommerce' ],
                 ],
             ],
             'ui' => [ 'show_advanced' => 'no' ],
@@ -59,8 +65,18 @@ final class Settings {
 
         $clean['modules']['templates']['single_product']['template_id']  = absint( $clean['modules']['templates']['single_product']['template_id'] ?? 0 );
         $clean['modules']['templates']['archive_product']['template_id'] = absint( $clean['modules']['templates']['archive_product']['template_id'] ?? 0 );
+        $clean['modules']['templates']['header']['template_id'] = absint( $clean['modules']['templates']['header']['template_id'] ?? 0 );
+        $clean['modules']['templates']['footer']['template_id'] = absint( $clean['modules']['templates']['footer']['template_id'] ?? 0 );
+
+        $clean['modules']['templates']['header']['scope'] = self::sanitize_scope( $clean['modules']['templates']['header']['scope'] ?? 'woocommerce' );
+        $clean['modules']['templates']['footer']['scope'] = self::sanitize_scope( $clean['modules']['templates']['footer']['scope'] ?? 'woocommerce' );
 
         return $clean;
+    }
+
+    private static function sanitize_scope( $raw ): string {
+        $raw = is_string( $raw ) ? strtolower( $raw ) : 'woocommerce';
+        return in_array( $raw, [ 'woocommerce', 'global' ], true ) ? $raw : 'woocommerce';
     }
 
     private static function sanitize_yes_no_recursive( array $value, array $shape ): array {

@@ -36,6 +36,13 @@ final class Module extends AbstractModule {
     }
 
     protected function boot(): void {
-        // Module migration will be added in next iterations.
+        if ( ! is_admin() ) {
+            return;
+        }
+
+        require_once __DIR__ . '/ProductMSDS.php';
+
+        // Register WooCommerce product data tab + fields.
+        add_action( 'init', [ ProductMSDS::class, 'init' ] );
     }
 }

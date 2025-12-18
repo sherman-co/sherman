@@ -15,6 +15,9 @@ final class Bootstrap {
         Assets::init();
         ElementorSupport::init();
 
+        // Legacy helper functions used by some migrated components (e.g. Dynamic Tags).
+        require_once SHERMAN_CORE_NEXT_DIR . 'includes/Core/LegacyHelpers.php';
+
         // One-time migration from the legacy (pre-Next) options.
         Migrator::maybe_migrate();
 
