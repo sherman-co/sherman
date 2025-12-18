@@ -15,6 +15,9 @@ final class Bootstrap {
         Assets::init();
         ElementorSupport::init();
 
+        // One-time migration from the legacy (pre-Next) options.
+        Migrator::maybe_migrate();
+
         ( new Admin() )->init();
 
         foreach ( ModuleRegistry::sort_modules( ModuleRegistry::modules() ) as $module ) {

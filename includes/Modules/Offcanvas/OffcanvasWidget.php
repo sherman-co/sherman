@@ -7,22 +7,36 @@ use Elementor\Icons_Manager;
 
 final class OffcanvasWidget extends Widget_Base {
 
-    public function get_name() { return 'sherman_offcanvas'; }
-    public function get_title() { return __( 'Sherman Offcanvas', 'sherman-core' ); }
-    public function get_icon() { return 'eicon-menu-bar'; }
-    public function get_categories() { return [ 'sherman-core' ]; }
+    /**
+     * IMPORTANT: Keep the legacy widget name so existing Elementor pages continue to render.
+     */
+    public function get_name() { return 'simple_offcanvas'; }
+    public function get_title() { return __( 'Simple Offcanvas', 'sherman-core' ); }
+    public function get_icon() { return 'eicon-sidebar'; }
+    public function get_categories() { return [ 'general', 'sherman-core' ]; }
 
-    public function get_script_depends() { return [ 'sherman-core-offcanvas' ]; }
-    public function get_style_depends() { return [ 'sherman-core-offcanvas' ]; }
+    // Legacy asset handles expected by existing Elementor data.
+    public function get_script_depends() { return [ 'sherman-core-js' ]; }
+    public function get_style_depends() { return [ 'sherman-core-css' ]; }
 
     protected function register_controls() {
 
         $this->start_controls_section( 'section_content', [ 'label' => __( 'Content', 'sherman-core' ) ] );
 
         $this->add_control( 'trigger_text', [
-            'label' => __( 'Trigger text', 'sherman-core' ),
+            'label' => __( 'Trigger Button Text', 'sherman-core' ),
             'type' => Controls_Manager::TEXT,
-            'default' => __( 'Open', 'sherman-core' ),
+            'default' => __( 'Open Panel', 'sherman-core' ),
+        ] );
+
+        // Legacy control (kept for backward compatibility).
+        $this->add_control( 'show_text', [
+            'label'        => __( 'Show Text', 'sherman-core' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'sherman-core' ),
+            'label_off'    => __( 'No', 'sherman-core' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
         ] );
 
         $this->add_control( 'trigger_icon', [
@@ -32,7 +46,7 @@ final class OffcanvasWidget extends Widget_Base {
         ] );
 
         $this->add_control( 'template_id', [
-            'label' => __( 'Elementor template', 'sherman-core' ),
+            'label' => __( 'Content Template', 'sherman-core' ),
             'type' => Controls_Manager::SELECT2,
             'options' => $this->get_elementor_templates_options(),
             'default' => '',
@@ -53,12 +67,13 @@ final class OffcanvasWidget extends Widget_Base {
         ] );
 
         $this->add_control( 'prevent_scroll', [
-            'label' => __( 'Prevent page scroll', 'sherman-core' ),
+            'label' => __( 'Prevent Body Scroll', 'sherman-core' ),
             'type' => Controls_Manager::SWITCHER,
             'label_on' => __( 'Yes', 'sherman-core' ),
             'label_off' => __( 'No', 'sherman-core' ),
-            'return_value' => 'true',
-            'default' => 'true',
+            // Legacy uses "yes"; we accept both "yes" and "true" in render.
+            'return_value' => 'yes',
+            'default' => 'yes',
         ] );
 
         $this->end_controls_section();
@@ -95,7 +110,12 @@ final class OffcanvasWidget extends Widget_Base {
         $s = $this->get_settings_for_display();
         $id = $this->get_id();
         $side = ( $s['side'] ?? 'right' ) === 'left' ? 'left' : 'right';
-        $prevent_scroll = ( $s['prevent_scroll'] ?? '' ) === 'true';
+
+        $prevent_scroll_raw = $s['prevent_scroll'] ?? '';
+        $prevent_scroll = ( $prevent_scroll_raw === 'true' || $prevent_scroll_raw === 'yes' || $prevent_scroll_raw === '1' || $prevent_scroll_raw === 1 );
+
+        $show_text_raw = $s['show_text'] ?? 'yes';
+        $show_text = ( $show_text_raw === 'yes' || $show_text_raw === '1' || $show_text_raw === 1 );
 
         $wrapper_attrs = sprintf(
             'data-offcanvas-id="%1$s" data-prevent-scroll="%2$s"',
@@ -110,7 +130,9 @@ final class OffcanvasWidget extends Widget_Base {
                         <?php Icons_Manager::render_icon( $s['trigger_icon'], [ 'aria-hidden' => 'true' ] ); ?>
                     </span>
                 <?php endif; ?>
-                <span class="sle-offcanvas__trigger-text"><?php echo esc_html( $s['trigger_text'] ?? '' ); ?></span>
+                <?php if ( $show_text ) : ?>
+                    <span class="sle-offcanvas__trigger-text"><?php echo esc_html( $s['trigger_text'] ?? '' ); ?></span>
+                <?php endif; ?>
             </a>
 
             <div class="sle-offcanvas sle-offcanvas-side-<?php echo esc_attr( $side ); ?>" data-sle-offcanvas-container="<?php echo esc_attr( $id ); ?>">

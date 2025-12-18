@@ -43,21 +43,50 @@ final class Module extends AbstractModule {
     }
 
     protected function boot(): void {
+        // Register assets via Elementor hooks (legacy-compatible), and also register on front-end.
+        add_action( 'elementor/frontend/after_register_styles', [ $this, 'register_assets' ] );
+        add_action( 'elementor/frontend/after_register_scripts', [ $this, 'register_assets' ] );
         add_action( 'wp_enqueue_scripts', [ $this, 'register_assets' ] );
         add_action( 'elementor/widgets/register', [ $this, 'register_widget' ] );
     }
 
     public function register_assets(): void {
+        // Legacy handles expected by existing Elementor pages.
+        $css_handle_legacy = 'sherman-core-css';
+        $js_handle_legacy  = 'sherman-core-js';
+
+        // New internal handle (kept for future use).
+        $css_handle_new = 'sherman-core-offcanvas';
+        $js_handle_new  = 'sherman-core-offcanvas';
+
+        // NOTE: sherman-core-css is also registered by the shared Assets registrar.
+        // We keep it pointing to the shared stylesheet (which includes offcanvas rules)
+        // to remain compatible with legacy widgets.
         wp_register_style(
-            'sherman-core-offcanvas',
-            SHERMAN_CORE_NEXT_URL . 'assets/frontend/offcanvas.css',
-            [],
+            $css_handle_legacy,
+            SHERMAN_CORE_NEXT_URL . 'assets/frontend/sherman-core.css',
+            [ 'elementor-frontend' ],
             SHERMAN_CORE_NEXT_VERSION
         );
         wp_register_script(
-            'sherman-core-offcanvas',
+            $js_handle_legacy,
             SHERMAN_CORE_NEXT_URL . 'assets/frontend/offcanvas.js',
-            [],
+            [ 'elementor-frontend' ],
+            SHERMAN_CORE_NEXT_VERSION,
+            true
+        );
+
+        // Alias the new handle to the same assets.
+        wp_register_style(
+            $css_handle_new,
+            SHERMAN_CORE_NEXT_URL . 'assets/frontend/offcanvas.css',
+            [ 'elementor-frontend' ],
+            SHERMAN_CORE_NEXT_VERSION
+        );
+        wp_register_script(
+            $js_handle_new,
+            SHERMAN_CORE_NEXT_URL . 'assets/frontend/offcanvas.js',
+            [ 'elementor-frontend' ],
             SHERMAN_CORE_NEXT_VERSION,
             true
         );

@@ -9,7 +9,27 @@ final class Settings {
             'modules' => [
                 'offcanvas'         => [ 'enabled' => 'yes' ],
                 'elementor_widgets' => [ 'enabled' => 'yes' ],
-                'dynamic_tags'      => [ 'enabled' => 'yes' ],
+                'dynamic_tags'      => [
+                    'enabled' => 'yes',
+                    // Per-tag toggles (legacy-compatible). These are used by the Dynamic Tags module.
+                    'tags'    => [
+                        'ps_site_url'                 => [ 'enabled' => 'yes' ],
+                        'ps_msds_url'                 => [ 'enabled' => 'yes' ],
+                        'ps_msds_file_name'           => [ 'enabled' => 'yes' ],
+                        'ps_msds_available'           => [ 'enabled' => 'yes' ],
+                        'ps_msds_check_now'           => [ 'enabled' => 'yes' ],
+                        'ps_product_name'             => [ 'enabled' => 'yes' ],
+                        'ps_product_short_description'=> [ 'enabled' => 'yes' ],
+                        'ps_product_description'      => [ 'enabled' => 'yes' ],
+                        'ps_product_sku'              => [ 'enabled' => 'yes' ],
+                        'ps_product_categories'       => [ 'enabled' => 'yes' ],
+                        'ps_product_tags'             => [ 'enabled' => 'yes' ],
+                        'ps_product_add_to_cart'      => [ 'enabled' => 'yes' ],
+                        'ps_product_additional_info'  => [ 'enabled' => 'yes' ],
+                        'ps_post_main_image'          => [ 'enabled' => 'yes' ],
+                        'ps_post_url'                 => [ 'enabled' => 'yes' ],
+                    ],
+                ],
                 'msds'              => [ 'enabled' => 'yes' ],
                 'templates'         => [
                     'enabled' => 'yes',
