@@ -6,6 +6,8 @@ use ShermanCore\Core\Settings;
 
 final class Module extends AbstractModule {
 
+    private const PRODUCT_CAT_TEMPLATE_META_KEY = '_sherman_core_product_cat_archive_template_id';
+
     public function id(): string { return 'templates'; }
 
     public function manifest(): array {
@@ -52,6 +54,14 @@ final class Module extends AbstractModule {
         // Hello Elementor duplication guard: the Hello theme uses a single toggle for both header+footer.
         // If BOTH overrides are active for a given request, we can safely turn off theme header/footer output.
         add_filter( 'hello_elementor_header_footer', [ $this, 'filter_hello_header_footer' ], 20 );
+
+        // Per-product-category archive template override.
+        if ( is_admin() ) {
+            add_action( 'product_cat_add_form_fields', [ $this, 'render_product_cat_template_field_add' ] );
+            add_action( 'product_cat_edit_form_fields', [ $this, 'render_product_cat_template_field_edit' ], 10, 1 );
+            add_action( 'created_product_cat', [ $this, 'save_product_cat_template_field' ], 10, 1 );
+            add_action( 'edited_product_cat', [ $this, 'save_product_cat_template_field' ], 10, 1 );
+        }
     }
 
     /**
@@ -117,9 +127,113 @@ final class Module extends AbstractModule {
     }
 
     public function filter_archive_template_id( int $legacy_id ): int {
+        // Per-category override (highest priority within product category archives).
+        if ( function_exists( 'is_product_category' ) && is_product_category() ) {
+            $qo = get_queried_object();
+            if ( $qo && $qo instanceof \WP_Term && ! empty( $qo->term_id ) ) {
+                $term_tpl = (int) get_term_meta( (int) $qo->term_id, self::PRODUCT_CAT_TEMPLATE_META_KEY, true );
+                if ( $term_tpl > 0 ) {
+                    return $term_tpl;
+                }
+            }
+        }
+
         $s = Settings::get_all();
         $id = (int) ( $s['modules']['templates']['archive_product']['template_id'] ?? 0 );
         return $id > 0 ? $id : $legacy_id;
+    }
+
+    /**
+     * Admin UI: Add field in Products > Categories for selecting an Elementor template.
+     */
+    public function render_product_cat_template_field_add(): void {
+        if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $options = $this->get_elementor_template_options();
+
+        echo '<div class="form-field term-sherman-core-archive-template-wrap">';
+        echo '<label for="sherman_core_product_cat_archive_template_id">' . esc_html__( 'Archive template override (Sherman Core)', 'sherman-core' ) . '</label>';
+        wp_nonce_field( 'sherman_core_save_product_cat_template', 'sherman_core_product_cat_template_nonce' );
+        echo '<select name="sherman_core_product_cat_archive_template_id" id="sherman_core_product_cat_archive_template_id" class="postform">';
+        foreach ( $options as $id => $title ) {
+            echo '<option value="' . esc_attr( (string) $id ) . '">' . esc_html( $title ) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">' . esc_html__( 'Optional. If set, this Elementor template will be used for this product category archive (instead of the global archive template).', 'sherman-core' ) . '</p>';
+        echo '</div>';
+    }
+
+    /**
+     * Admin UI: Edit field in Products > Categories.
+     */
+    public function render_product_cat_template_field_edit( $term ): void {
+        if ( ! ( $term instanceof \WP_Term ) ) {
+            return;
+        }
+        if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $saved = (int) get_term_meta( (int) $term->term_id, self::PRODUCT_CAT_TEMPLATE_META_KEY, true );
+        $options = $this->get_elementor_template_options();
+
+        echo '<tr class="form-field term-sherman-core-archive-template-wrap">';
+        echo '<th scope="row"><label for="sherman_core_product_cat_archive_template_id">' . esc_html__( 'Archive template override (Sherman Core)', 'sherman-core' ) . '</label></th>';
+        echo '<td>';
+        wp_nonce_field( 'sherman_core_save_product_cat_template', 'sherman_core_product_cat_template_nonce' );
+        echo '<select name="sherman_core_product_cat_archive_template_id" id="sherman_core_product_cat_archive_template_id" class="postform">';
+        foreach ( $options as $id => $title ) {
+            echo '<option value="' . esc_attr( (string) $id ) . '" ' . selected( (int) $id, $saved, false ) . '>' . esc_html( $title ) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">' . esc_html__( 'Optional. If set, this Elementor template will be used for this product category archive (instead of the global archive template).', 'sherman-core' ) . '</p>';
+        echo '</td>';
+        echo '</tr>';
+    }
+
+    /**
+     * Save term meta for category template override.
+     */
+    public function save_product_cat_template_field( int $term_id ): void {
+        if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $nonce = isset( $_POST['sherman_core_product_cat_template_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['sherman_core_product_cat_template_nonce'] ) ) : '';
+        if ( ! $nonce || ! wp_verify_nonce( $nonce, 'sherman_core_save_product_cat_template' ) ) {
+            return;
+        }
+
+        $raw = isset( $_POST['sherman_core_product_cat_archive_template_id'] ) ? wp_unslash( $_POST['sherman_core_product_cat_archive_template_id'] ) : 0;
+        $template_id = absint( $raw );
+
+        update_term_meta( $term_id, self::PRODUCT_CAT_TEMPLATE_META_KEY, $template_id );
+    }
+
+    /**
+     * Returns [id => title] list for Elementor Library templates.
+     */
+    private function get_elementor_template_options(): array {
+        $options = [ 0 => __( '— Use global archive template —', 'sherman-core' ) ];
+
+        $templates = get_posts( [
+            'post_type'      => 'elementor_library',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'orderby'        => 'title',
+            'order'          => 'ASC',
+        ] );
+
+        foreach ( (array) $templates as $tpl ) {
+            if ( ! $tpl instanceof \WP_Post ) {
+                continue;
+            }
+            $options[ (int) $tpl->ID ] = (string) $tpl->post_title;
+        }
+
+        return $options;
     }
 
     private function is_product_archive(): bool {

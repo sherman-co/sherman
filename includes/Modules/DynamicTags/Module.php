@@ -112,6 +112,11 @@ final class Module extends AbstractModule {
     private function definitions(): array {
         $base = __DIR__ . '/tags';
         return [
+            'ps_context_title' => [
+                'option_key' => 'sherman_core_enable_tag_ps_context_title',
+                'file'  => $base . '/class-ps-tag-context-title.php',
+                'class' => '\\PS_Core\\Dynamic_Tags\\Tag_Context_Title',
+            ],
             'ps_site_url' => [
                 'option_key' => 'sherman_core_enable_tag_ps_site_url',
                 'file'  => $base . '/class-ps-tag-site-url.php',
