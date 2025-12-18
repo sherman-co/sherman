@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Sherman Core Next
  * Description:       Modular Sherman Core plugin (next-generation architecture).
- * Version:           0.2.6
+ * Version:           0.2.7
  * Author:            Sherman
  * Text Domain:       sherman-core
  * Domain Path:       /languages
@@ -10,7 +10,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'SHERMAN_CORE_NEXT_VERSION', '0.2.6' );
+define( 'SHERMAN_CORE_NEXT_VERSION', '0.2.7' );
 define( 'SHERMAN_CORE_NEXT_FILE', __FILE__ );
 define( 'SHERMAN_CORE_NEXT_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SHERMAN_CORE_NEXT_URL', plugin_dir_url( __FILE__ ) );

@@ -1,0 +1,14 @@
+.sherman-product-loop-wrapper{position:relative}
+.sherman-product-loop-grid{display:grid}
+
+.sherman-product-loop-controls{margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sherman-product-loop-load-more{cursor:pointer}
+.sherman-product-loop-status{font-size:14px;opacity:.85}
+.sherman-product-loop-sentinel{width:100%;height:1px}
+
+.sherman-product-loop-pagination{margin-top:16px}
+.sherman-product-loop-pagination .page-numbers{display:inline-flex;align-items:center;justify-content:center;margin:0 4px;padding:6px 10px;text-decoration:none;line-height:1;border:1px solid rgba(0,0,0,.15);border-radius:6px}
+.sherman-product-loop-pagination .page-numbers.current{font-weight:600;opacity:.9}
+
+/* SEO fallback pagination (hidden but crawlable) */
+.sherman-product-loop-pagination--seo-fallback{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}

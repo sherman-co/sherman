@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [0.2.7] - 2025-12-18
+### Added
+- Sherman Product Loop: Pagination modes and front-end loading
+  - **None** (existing behavior)
+  - **Numbers** pagination (server-rendered)
+  - **Load More** button (AJAX)
+  - **Infinite Scroll** (AJAX)
+- Optional **SEO fallback pagination** (hidden crawlable links) for Load More / Infinite.
+- Optional **URL Sync** for Load More / Infinite (History API), with safe pretty-URL mode on product archives.
+
 ## [0.2.6] - 2025-12-18
 ### Added
 - Dynamic Tag: **PS Context Title** (context-aware title for the current request)
@@ -15,6 +25,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Per Product Category **Archive Template Override**
   - Adds an Elementor template selector in **Products → Categories → Add/Edit**
   - When viewing a product category archive, the selected template (if any) overrides the global archive template.
+
 
 ## [0.2.5] - 2025-12-18
 ### Added

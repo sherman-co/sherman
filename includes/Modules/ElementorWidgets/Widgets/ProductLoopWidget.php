@@ -10,8 +10,19 @@ use Elementor\Controls_Manager;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Group_Control_Background;
+use Elementor\Group_Control_Typography;
+
+use ShermanCore\Modules\ElementorWidgets\ProductLoopService;
 
 final class ProductLoopWidget extends Widget_Base {
+
+    public function get_style_depends() {
+        return [ 'sherman-core-product-loop' ];
+    }
+
+    public function get_script_depends() {
+        return [ 'sherman-core-product-loop' ];
+    }
 
     public function get_name() {
         return 'sherman_product_loop';
@@ -168,11 +179,120 @@ final class ProductLoopWidget extends Widget_Base {
         $this->add_control(
             'posts_per_page',
             [
-                'label'   => __( 'Products to show', 'sherman-core' ),
+                'label'   => __( 'Products per page', 'sherman-core' ),
                 'type'    => Controls_Manager::NUMBER,
                 'default' => 4,
                 'min'     => 1,
                 'max'     => 50,
+            ]
+        );
+
+        $this->add_control(
+            'pagination_mode',
+            [
+                'label'   => __( 'Pagination Mode', 'sherman-core' ),
+                'type'    => Controls_Manager::SELECT,
+                'default' => 'none',
+                'options' => [
+                    'none'     => __( 'None', 'sherman-core' ),
+                    'numbers'  => __( 'Numbers', 'sherman-core' ),
+                    'load_more'=> __( 'Load More Button', 'sherman-core' ),
+                    'infinite' => __( 'Infinite Scroll', 'sherman-core' ),
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'max_pages',
+            [
+                'label'       => __( 'Max Pages', 'sherman-core' ),
+                'type'        => Controls_Manager::NUMBER,
+                'default'     => 0,
+                'min'         => 0,
+                'max'         => 200,
+                'description' => __( '0 means no limit. Useful for Load More / Infinite to prevent endless scrolling.', 'sherman-core' ),
+                'condition'   => [
+                    'pagination_mode!' => 'none',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'seo_fallback_pagination',
+            [
+                'label'        => __( 'SEO Fallback Pagination', 'sherman-core' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'When enabled, hidden pagination links are rendered even for Load More / Infinite.', 'sherman-core' ),
+                'condition'    => [
+                    'pagination_mode' => [ 'load_more', 'infinite' ],
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'url_sync',
+            [
+                'label'        => __( 'URL Sync (History API)', 'sherman-core' ),
+                'type'         => Controls_Manager::SWITCHER,
+                'return_value' => 'yes',
+                'default'      => 'yes',
+                'description'  => __( 'Updates the URL as pages are loaded (Load More / Infinite).', 'sherman-core' ),
+                'condition'    => [
+                    'pagination_mode' => [ 'load_more', 'infinite' ],
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'load_more_text',
+            [
+                'label'     => __( 'Load More Button Text', 'sherman-core' ),
+                'type'      => Controls_Manager::TEXT,
+                'default'   => __( 'Load more', 'sherman-core' ),
+                'condition' => [
+                    'pagination_mode' => 'load_more',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'loading_text',
+            [
+                'label'     => __( 'Loading Text', 'sherman-core' ),
+                'type'      => Controls_Manager::TEXT,
+                'default'   => __( 'Loading…', 'sherman-core' ),
+                'condition' => [
+                    'pagination_mode' => [ 'load_more', 'infinite' ],
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'no_more_text',
+            [
+                'label'     => __( 'No More Products Text', 'sherman-core' ),
+                'type'      => Controls_Manager::TEXT,
+                'default'   => __( 'No more products.', 'sherman-core' ),
+                'condition' => [
+                    'pagination_mode' => [ 'load_more', 'infinite' ],
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'scroll_threshold',
+            [
+                'label'       => __( 'Infinite Scroll Threshold (px)', 'sherman-core' ),
+                'type'        => Controls_Manager::NUMBER,
+                'default'     => 200,
+                'min'         => 0,
+                'max'         => 2000,
+                'description' => __( 'How early (in px) to start loading before reaching the end.', 'sherman-core' ),
+                'condition'   => [
+                    'pagination_mode' => 'infinite',
+                ],
             ]
         );
 
@@ -343,229 +463,109 @@ final class ProductLoopWidget extends Widget_Base {
         );
 
         $this->end_controls_section();
-    }
 
-    protected function sort_product_ids_basic( array $ids, $orderby, $order ) {
-        $ids = array_values( array_filter( array_map( 'intval', $ids ) ) );
+        // Pagination styles
+        $this->start_controls_section(
+            'section_style_pagination',
+            [
+                'label' => __( 'Pagination', 'sherman-core' ),
+                'tab'   => Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'pagination_mode!' => 'none',
+                ],
+            ]
+        );
 
-        if ( empty( $ids ) ) {
-            return [];
-        }
+        $this->add_group_control(
+            Group_Control_Typography::get_type(),
+            [
+                'name'     => 'pagination_typography',
+                'selector' => '{{WRAPPER}} .sherman-product-loop-pagination, {{WRAPPER}} .sherman-product-loop-load-more, {{WRAPPER}} .sherman-product-loop-status',
+            ]
+        );
 
-        if ( 'rand' === $orderby ) {
-            shuffle( $ids );
-            return $ids;
-        }
+        $this->add_control(
+            'pagination_spacing',
+            [
+                'label' => __( 'Top Spacing', 'sherman-core' ),
+                'type'  => Controls_Manager::SLIDER,
+                'range' => [
+                    'px' => [ 'min' => 0, 'max' => 80 ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .sherman-product-loop-pagination, {{WRAPPER}} .sherman-product-loop-controls' => 'margin-top: {{SIZE}}px;',
+                ],
+            ]
+        );
 
-        $posts = get_posts( [
-            'post_type'      => 'product',
-            'post__in'       => $ids,
-            'posts_per_page' => -1,
-            'orderby'        => 'post__in',
-        ] );
+        $this->end_controls_section();
 
-        if ( empty( $posts ) ) {
-            return $ids;
-        }
+		$this->start_controls_section(
+			'section_style_pagination',
+			[
+				'label' => __( 'Pagination & Load More', 'sherman-core' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+				'condition' => [
+					'pagination_mode!' => 'none',
+				],
+			]
+		);
 
-        $map = [];
-        foreach ( $posts as $p ) {
-            $map[ $p->ID ] = [
-                'title' => (string) $p->post_title,
-                'date'  => (string) $p->post_date,
-            ];
-        }
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'pagination_typography',
+				'label'    => __( 'Pagination Typography', 'sherman-core' ),
+				'selector' => '{{WRAPPER}} .sherman-product-loop-pagination .page-numbers',
+			]
+		);
 
-        usort( $ids, function( $a, $b ) use ( $map, $orderby, $order ) {
-            $va = $map[ $a ][ $orderby ] ?? '';
-            $vb = $map[ $b ][ $orderby ] ?? '';
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'loadmore_typography',
+				'label'    => __( 'Load More Typography', 'sherman-core' ),
+				'selector' => '{{WRAPPER}} .sherman-product-loop-load-more',
+			]
+		);
 
-            if ( $va === $vb ) {
-                return 0;
-            }
+		$this->add_responsive_control(
+			'loadmore_padding',
+			[
+				'label'      => __( 'Load More Padding', 'sherman-core' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sherman-product-loop-load-more' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
 
-            if ( 'ASC' === $order ) {
-                return ( $va < $vb ) ? -1 : 1;
-            }
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'loadmore_background',
+				'selector' => '{{WRAPPER}} .sherman-product-loop-load-more',
+			]
+		);
 
-            return ( $va > $vb ) ? -1 : 1;
-        } );
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'loadmore_border',
+				'selector' => '{{WRAPPER}} .sherman-product-loop-load-more',
+			]
+		);
 
-        return $ids;
-    }
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'loadmore_shadow',
+				'selector' => '{{WRAPPER}} .sherman-product-loop-load-more',
+			]
+		);
 
-    protected function get_product_ids_from_settings( $settings ) {
-        $source      = $settings['query_source'] ?? 'related_current_product';
-        $limit       = ! empty( $settings['posts_per_page'] ) ? (int) $settings['posts_per_page'] : 4;
-        $order       = ( isset( $settings['order'] ) && 'ASC' === $settings['order'] ) ? 'ASC' : 'DESC';
-        $orderby     = $settings['orderby'] ?? 'date';
-        $product_ids = [];
-
-        $orderby_map = 'date';
-        if ( 'title' === $orderby ) {
-            $orderby_map = 'title';
-        } elseif ( 'rand' === $orderby ) {
-            $orderby_map = 'rand';
-        }
-
-        $current_product_id = 0;
-        if ( function_exists( 'ps_core_get_current_product_id' ) ) {
-            $current_product_id = (int) ps_core_get_current_product_id();
-        }
-
-        if ( 'related_current_product' === $source ) {
-
-            if ( ! $current_product_id || ! function_exists( 'wc_get_related_products' ) ) {
-                return [];
-            }
-
-            $related = wc_get_related_products( $current_product_id, $limit * 3 );
-            $product_ids = $this->sort_product_ids_basic( $related, $orderby, $order );
-
-        } elseif ( 'current_query' === $source ) {
-
-            global $wp_query;
-            if ( $wp_query instanceof \WP_Query && ! empty( $wp_query->posts ) ) {
-                $ids = wp_list_pluck( $wp_query->posts, 'ID' );
-                $product_ids = $this->sort_product_ids_basic( $ids, $orderby, $order );
-            }
-
-        } elseif ( 'product_cat' === $source ) {
-
-            $cat_ids = $settings['product_cats'] ?? [];
-
-            if ( ! empty( $cat_ids ) && is_array( $cat_ids ) ) {
-                $cat_ids = array_map( 'intval', $cat_ids );
-                $cat_ids = array_filter( $cat_ids );
-
-                if ( ! empty( $cat_ids ) ) {
-                    $q = new \WP_Query( [
-                        'post_type'      => 'product',
-                        'posts_per_page' => $limit,
-                        'orderby'        => $orderby_map,
-                        'order'          => $order,
-                        'post_status'    => 'publish',
-                        'tax_query'      => [
-                            [
-                                'taxonomy' => 'product_cat',
-                                'field'    => 'term_id',
-                                'terms'    => $cat_ids,
-                            ],
-                        ],
-                        'no_found_rows'  => true,
-                    ] );
-
-                    if ( $q->have_posts() ) {
-                        $product_ids = wp_list_pluck( $q->posts, 'ID' );
-                    }
-
-                    wp_reset_postdata();
-                }
-            }
-
-        } elseif ( 'product_tag' === $source ) {
-
-            $tag_ids = $settings['product_tags'] ?? [];
-
-            if ( ! empty( $tag_ids ) && is_array( $tag_ids ) ) {
-                $tag_ids = array_map( 'intval', $tag_ids );
-                $tag_ids = array_filter( $tag_ids );
-
-                if ( ! empty( $tag_ids ) ) {
-                    $q = new \WP_Query( [
-                        'post_type'      => 'product',
-                        'posts_per_page' => $limit,
-                        'orderby'        => $orderby_map,
-                        'order'          => $order,
-                        'post_status'    => 'publish',
-                        'tax_query'      => [
-                            [
-                                'taxonomy' => 'product_tag',
-                                'field'    => 'term_id',
-                                'terms'    => $tag_ids,
-                            ],
-                        ],
-                        'no_found_rows'  => true,
-                    ] );
-
-                    if ( $q->have_posts() ) {
-                        $product_ids = wp_list_pluck( $q->posts, 'ID' );
-                    }
-
-                    wp_reset_postdata();
-                }
-            }
-
-        } elseif ( 'on_sale' === $source ) {
-
-            if ( function_exists( 'wc_get_product_ids_on_sale' ) ) {
-                $sale_ids = wc_get_product_ids_on_sale();
-
-                if ( ! empty( $sale_ids ) ) {
-                    $q = new \WP_Query( [
-                        'post_type'      => 'product',
-                        'posts_per_page' => $limit,
-                        'post__in'       => $sale_ids,
-                        'orderby'        => $orderby_map,
-                        'order'          => $order,
-                        'post_status'    => 'publish',
-                        'no_found_rows'  => true,
-                    ] );
-
-                    if ( $q->have_posts() ) {
-                        $product_ids = wp_list_pluck( $q->posts, 'ID' );
-                    }
-
-                    wp_reset_postdata();
-                }
-            }
-
-        } elseif ( 'featured' === $source ) {
-
-            if ( function_exists( 'wc_get_featured_product_ids' ) ) {
-                $featured_ids = wc_get_featured_product_ids();
-
-                if ( ! empty( $featured_ids ) ) {
-                    $q = new \WP_Query( [
-                        'post_type'      => 'product',
-                        'posts_per_page' => $limit,
-                        'post__in'       => $featured_ids,
-                        'orderby'        => $orderby_map,
-                        'order'          => $order,
-                        'post_status'    => 'publish',
-                        'no_found_rows'  => true,
-                    ] );
-
-                    if ( $q->have_posts() ) {
-                        $product_ids = wp_list_pluck( $q->posts, 'ID' );
-                    }
-
-                    wp_reset_postdata();
-                }
-            }
-
-        } elseif ( 'manual_ids' === $source ) {
-
-            if ( ! empty( $settings['manual_ids'] ) ) {
-                $ids = explode( ',', $settings['manual_ids'] );
-                foreach ( $ids as $id ) {
-                    $id = (int) trim( $id );
-                    if ( $id > 0 ) {
-                        $product_ids[] = $id;
-                    }
-                }
-
-                $product_ids = $this->sort_product_ids_basic( $product_ids, $orderby, $order );
-            }
-        }
-
-        $product_ids = array_values( array_unique( array_map( 'intval', $product_ids ) ) );
-
-        if ( $limit > 0 && count( $product_ids ) > $limit ) {
-            $product_ids = array_slice( $product_ids, 0, $limit );
-        }
-
-        return $product_ids;
+		$this->end_controls_section();
     }
 
     protected function render() {
@@ -603,10 +603,18 @@ final class ProductLoopWidget extends Widget_Base {
             return;
         }
 
-        $product_ids = $this->get_product_ids_from_settings( $settings );
+        $pagination_mode = isset( $settings['pagination_mode'] ) ? (string) $settings['pagination_mode'] : 'none';
 
-        // No products found
-        if ( empty( $product_ids ) ) {
+        $sanitized = ProductLoopService::sanitize_settings( $settings );
+
+        $paged = 1;
+        if ( 'numbers' === $pagination_mode ) {
+            $paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+        }
+
+        $result = ProductLoopService::query_products( $sanitized, $paged );
+
+        if ( empty( $result['ids'] ) ) {
             if ( current_user_can( 'manage_options' ) ) {
                 echo '<div class="sherman-product-loop-wrapper"><div class="sherman-core-widget-notice">';
                 esc_html_e( 'No products found for the current Sherman Product Loop query.', 'sherman-core' );
@@ -615,38 +623,91 @@ final class ProductLoopWidget extends Widget_Base {
             return;
         }
 
-        global $product, $post;
+        $seo_fallback = ( isset( $settings['seo_fallback_pagination'] ) && 'yes' === $settings['seo_fallback_pagination'] );
+        $url_sync     = ( isset( $settings['url_sync'] ) && 'yes' === $settings['url_sync'] );
 
-        $original_product = $product;
-        $original_post    = $post;
+        // Enable pretty URL sync only on product archives (safer than forcing it everywhere).
+        $is_archive_ctx = ( function_exists( 'is_shop' ) && is_shop() ) || is_post_type_archive( 'product' ) || is_tax( 'product_cat' ) || is_tax( 'product_tag' );
+        $pretty         = (bool) get_option( 'permalink_structure' );
 
-        echo '<div class="sherman-product-loop-wrapper">';
-        echo '<div class="sherman-product-loop-grid">';
+        $config = [
+            'template_id'      => $template_id,
+            'settings'         => $sanitized,
+            'mode'             => $pagination_mode,
+            'max_pages'        => (int) $result['max_pages'],
+            'paged'            => (int) $result['current_page'],
+            'has_more'         => (bool) $result['has_more'],
+            'seo_fallback'     => $seo_fallback,
+            'url_sync'         => $url_sync,
+            'url_sync_pretty'  => ( $url_sync && $pretty && $is_archive_ctx ),
+            'base_url'         => get_pagenum_link( 1 ),
+            'loading_text'     => isset( $settings['loading_text'] ) ? (string) $settings['loading_text'] : __( 'Loading…', 'sherman-core' ),
+            'no_more_text'     => isset( $settings['no_more_text'] ) ? (string) $settings['no_more_text'] : __( 'No more products.', 'sherman-core' ),
+            'load_more_text'   => isset( $settings['load_more_text'] ) ? (string) $settings['load_more_text'] : __( 'Load more', 'sherman-core' ),
+            'scroll_threshold' => isset( $settings['scroll_threshold'] ) ? (int) $settings['scroll_threshold'] : 200,
+        ];
 
-        foreach ( $product_ids as $pid ) {
-            $wc_product = wc_get_product( $pid );
-            $post_obj   = get_post( $pid );
-
-            if ( ! $wc_product || ! $post_obj ) {
-                continue;
-            }
-
-            $product = $wc_product;
-            $post    = $post_obj;
-            setup_postdata( $post );
-
-            echo '<div class="sherman-product-loop-item">';
-            echo \Elementor\Plugin::$instance->frontend->get_builder_content_for_display( $template_id );
-            echo '</div>';
+        $wrapper_attrs = '';
+        if ( in_array( $pagination_mode, [ 'load_more', 'infinite' ], true ) ) {
+            $wrapper_attrs = ' data-sherman-loop="' . esc_attr( wp_json_encode( $config ) ) . '"';
         }
 
-        wp_reset_postdata();
+        echo '<div class="sherman-product-loop-wrapper"' . $wrapper_attrs . '>';
+        echo '<div class="sherman-product-loop-grid">';
+        echo ProductLoopService::render_items_html( $result['ids'], $template_id );
+        echo '</div>';
+
+        // Pagination UI
+        if ( 'numbers' === $pagination_mode ) {
+            echo $this->render_pagination_links( (int) $result['max_pages'], (int) $result['current_page'], false );
+        } elseif ( 'load_more' === $pagination_mode ) {
+            echo '<div class="sherman-product-loop-controls">';
+            echo '<button type="button" class="sherman-product-loop-load-more">' . esc_html( $config['load_more_text'] ) . '</button>';
+            echo '<div class="sherman-product-loop-status" aria-live="polite"></div>';
+            echo '</div>';
+            echo '<div class="sherman-product-loop-sentinel" aria-hidden="true"></div>';
+
+            if ( $seo_fallback ) {
+                echo $this->render_pagination_links( (int) $result['max_pages'], (int) $result['current_page'], true );
+            }
+        } elseif ( 'infinite' === $pagination_mode ) {
+            echo '<div class="sherman-product-loop-controls">';
+            echo '<div class="sherman-product-loop-status" aria-live="polite"></div>';
+            echo '</div>';
+            echo '<div class="sherman-product-loop-sentinel" aria-hidden="true"></div>';
+
+            if ( $seo_fallback ) {
+                echo $this->render_pagination_links( (int) $result['max_pages'], (int) $result['current_page'], true );
+            }
+        }
 
         echo '</div>';
-        echo '</div>';
+    }
 
-        $product = $original_product;
-        $post    = $original_post;
+    private function render_pagination_links( int $total_pages, int $current, bool $seo_fallback ): string {
+        $total_pages = max( 1, (int) $total_pages );
+        $current     = max( 1, (int) $current );
+
+        if ( $total_pages <= 1 ) {
+            return '';
+        }
+
+        $links = paginate_links( [
+            'base'      => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
+            'format'    => '',
+            'current'   => $current,
+            'total'     => $total_pages,
+            'type'      => 'list',
+            'prev_text' => '&laquo;',
+            'next_text' => '&raquo;',
+        ] );
+
+        if ( empty( $links ) ) {
+            return '';
+        }
+
+        $cls = $seo_fallback ? 'sherman-product-loop-pagination sherman-product-loop-pagination--seo-fallback' : 'sherman-product-loop-pagination';
+        return '<nav class="' . esc_attr( $cls ) . '" aria-label="Pagination">' . $links . '</nav>';
     }
 
 }
