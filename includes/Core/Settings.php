@@ -35,12 +35,15 @@ final class Settings {
                     'enabled' => 'yes',
                     'single_product'  => [ 'enabled' => 'no', 'template_id' => 0 ],
                     'archive_product' => [ 'enabled' => 'no', 'template_id' => 0 ],
+                    // When enabled, attempts to prevent duplicated theme header/footer output (Hello Elementor)
+                    // when BOTH header and footer overrides are active on the current request.
+                    'auto_disable_hello_header_footer' => 'yes',
                     // Header/Footer overrides using Elementor templates.
                     // Scope can be:
                     // - woocommerce: only apply on WooCommerce pages
                     // - global: apply site-wide (use with care)
-                    'header' => [ 'enabled' => 'no', 'template_id' => 0, 'scope' => 'woocommerce' ],
-                    'footer' => [ 'enabled' => 'no', 'template_id' => 0, 'scope' => 'woocommerce' ],
+                    'header' => [ 'enabled' => 'no', 'template_id' => 0, 'scope' => 'woocommerce', 'exclude_paths' => '' ],
+                    'footer' => [ 'enabled' => 'no', 'template_id' => 0, 'scope' => 'woocommerce', 'exclude_paths' => '' ],
                 ],
             ],
             'ui' => [ 'show_advanced' => 'no' ],
@@ -70,6 +73,14 @@ final class Settings {
 
         $clean['modules']['templates']['header']['scope'] = self::sanitize_scope( $clean['modules']['templates']['header']['scope'] ?? 'woocommerce' );
         $clean['modules']['templates']['footer']['scope'] = self::sanitize_scope( $clean['modules']['templates']['footer']['scope'] ?? 'woocommerce' );
+
+        // Free-form path lists (one per line). We keep them as plain strings and normalize at runtime.
+        $clean['modules']['templates']['header']['exclude_paths'] = is_string( $clean['modules']['templates']['header']['exclude_paths'] ?? '' )
+            ? sanitize_textarea_field( $clean['modules']['templates']['header']['exclude_paths'] )
+            : '';
+        $clean['modules']['templates']['footer']['exclude_paths'] = is_string( $clean['modules']['templates']['footer']['exclude_paths'] ?? '' )
+            ? sanitize_textarea_field( $clean['modules']['templates']['footer']['exclude_paths'] )
+            : '';
 
         return $clean;
     }

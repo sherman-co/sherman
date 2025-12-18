@@ -12,24 +12,12 @@ if ( class_exists( '\\ShermanCore\\Core\\Settings' ) ) {
 
 $tpls = $all['modules']['templates'] ?? [];
 
-$apply_header = ( $tpls['header']['enabled'] ?? 'no' ) === 'yes'
-    && (int) ( $tpls['header']['template_id'] ?? 0 ) > 0
-    && class_exists( '\\Elementor\\Plugin' )
-    && ( ( $tpls['header']['scope'] ?? 'woocommerce' ) === 'global' || ( function_exists( 'is_woocommerce' ) && is_woocommerce() ) );
-
-$apply_footer = ( $tpls['footer']['enabled'] ?? 'no' ) === 'yes'
-    && (int) ( $tpls['footer']['template_id'] ?? 0 ) > 0
-    && class_exists( '\\Elementor\\Plugin' )
-    && ( ( $tpls['footer']['scope'] ?? 'woocommerce' ) === 'global' || ( function_exists( 'is_woocommerce' ) && is_woocommerce() ) );
-
-if ( $apply_header ) {
-    echo \Elementor\Plugin::$instance->frontend->get_builder_content_for_display( (int) $tpls['header']['template_id'] );
+// Header/Footer are handled centrally by the Templates module (wp_body_open / wp_footer).
+// This wrapper is responsible only for swapping the WooCommerce *content* template.
+if ( function_exists( 'is_woocommerce' ) ) {
+    get_header( 'shop' );
 } else {
-    if ( function_exists( 'is_woocommerce' ) ) {
-        get_header( 'shop' );
-    } else {
-        get_header();
-    }
+    get_header();
 }
 
 $template_id = (int) apply_filters( 'sherman_core_product_template_id', 0 );
@@ -59,12 +47,8 @@ if ( class_exists( '\\Elementor\\Plugin' ) && $template_id > 0 ) {
     }
 }
 
-if ( $apply_footer ) {
-    echo \Elementor\Plugin::$instance->frontend->get_builder_content_for_display( (int) $tpls['footer']['template_id'] );
+if ( function_exists( 'is_woocommerce' ) ) {
+    get_footer( 'shop' );
 } else {
-    if ( function_exists( 'is_woocommerce' ) ) {
-        get_footer( 'shop' );
-    } else {
-        get_footer();
-    }
+    get_footer();
 }

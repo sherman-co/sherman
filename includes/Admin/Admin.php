@@ -207,10 +207,14 @@ final class Admin {
         $header_en = $settings['modules']['templates']['header']['enabled'] ?? 'no';
         $header_id = (int) ( $settings['modules']['templates']['header']['template_id'] ?? 0 );
         $header_scope = (string) ( $settings['modules']['templates']['header']['scope'] ?? 'woocommerce' );
+        $header_exclude = (string) ( $settings['modules']['templates']['header']['exclude_paths'] ?? '' );
 
         $footer_en = $settings['modules']['templates']['footer']['enabled'] ?? 'no';
         $footer_id = (int) ( $settings['modules']['templates']['footer']['template_id'] ?? 0 );
         $footer_scope = (string) ( $settings['modules']['templates']['footer']['scope'] ?? 'woocommerce' );
+        $footer_exclude = (string) ( $settings['modules']['templates']['footer']['exclude_paths'] ?? '' );
+
+        $auto_disable_hello = $settings['modules']['templates']['auto_disable_hello_header_footer'] ?? 'yes';
 
         // Elementor templates (Elementor Library).
         $options = [ 0 => __( '— Select template —', 'sherman-core' ) ];
@@ -274,6 +278,11 @@ final class Admin {
         echo '</select>';
         echo '</label>';
         echo '<p class="description">' . esc_html__( 'Replaces the theme header with an Elementor template within overridden pages. If you choose “Entire site”, you may conflict with your theme/Elementor Theme Builder.', 'sherman-core' ) . '</p>';
+
+        echo '<p><label>' . esc_html__( 'Exclude paths (one per line)', 'sherman-core' ) . '<br>';
+        echo '<textarea rows="4" class="large-text" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][header][exclude_paths]">' . esc_textarea( $header_exclude ) . '</textarea>';
+        echo '</label></p>';
+        echo '<p class="description">' . esc_html__( 'Examples: /cart, /checkout, /my-account, https://example.com/special-page. Use * at the end for prefix match (e.g. /blog/*).', 'sherman-core' ) . '</p>';
         echo '</td></tr>';
 
         // Footer override.
@@ -294,6 +303,17 @@ final class Admin {
         echo '</select>';
         echo '</label>';
         echo '<p class="description">' . esc_html__( 'Replaces the theme footer with an Elementor template within overridden pages. If you choose “Entire site”, you may conflict with your theme/Elementor Theme Builder.', 'sherman-core' ) . '</p>';
+
+        echo '<p><label>' . esc_html__( 'Exclude paths (one per line)', 'sherman-core' ) . '<br>';
+        echo '<textarea rows="4" class="large-text" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][footer][exclude_paths]">' . esc_textarea( $footer_exclude ) . '</textarea>';
+        echo '</label></p>';
+        echo '<p class="description">' . esc_html__( 'Same matching rules as header exclude list.', 'sherman-core' ) . '</p>';
+        echo '</td></tr>';
+
+        // Hello Elementor duplication guard.
+        echo '<tr><th scope="row">' . esc_html__( 'Hello Elementor', 'sherman-core' ) . '</th><td>';
+        echo '<input type="hidden" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][auto_disable_hello_header_footer]" value="no">';
+        echo '<label><input type="checkbox" name="' . esc_attr( Settings::OPTION_NAME ) . '[modules][templates][auto_disable_hello_header_footer]" value="yes" ' . checked( $auto_disable_hello, 'yes', false ) . '> ' . esc_html__( 'Automatically disable Hello theme header/footer when BOTH header and footer overrides are active (prevents duplication).', 'sherman-core' ) . '</label>';
         echo '</td></tr>';
 
         echo '</tbody></table>';
