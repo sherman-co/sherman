@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [0.2.8] - 2025-12-19
+### Added
+- WooCommerce module: **Product Attributes**
+  - Adds the shortcode `[sherman_product_attributes]` to render a simple product attributes grid on single product pages.
+  - Frontend CSS moved to a dedicated asset file and styled for LTR layout with `Baloo 2` font-family.
+
 ## [0.2.7.1] - 2025-12-18
 ### Fixed
 - Fixed a fatal error in Sherman Product Loop where `ProductLoopService::query_products()` was called but not defined.

@@ -6,6 +6,7 @@ use ShermanCore\Modules\ElementorWidgets\Module as ElementorWidgetsModule;
 use ShermanCore\Modules\DynamicTags\Module as DynamicTagsModule;
 use ShermanCore\Modules\MSDS\Module as MSDSModule;
 use ShermanCore\Modules\Templates\Module as TemplatesModule;
+use ShermanCore\Modules\ProductAttributes\Module as ProductAttributesModule;
 
 final class ModuleRegistry {
 
@@ -28,6 +29,7 @@ final class ModuleRegistry {
             new DynamicTagsModule(),
             new MSDSModule(),
             new TemplatesModule(),
+            new ProductAttributesModule(),
         ];
     }
 

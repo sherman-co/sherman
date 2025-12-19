@@ -27,6 +27,10 @@ Sherman Core Next is a modular WordPress plugin that extends **Elementor** and *
   - MSDS PDF selection via Media Library and optional URL/labels
   - MSDS values available through Dynamic Tags
 
+- Product Attributes Shortcode
+  - Shortcode: `[sherman_product_attributes]`
+  - Renders a simple attributes grid on single product pages
+
 ### Site-wide Header/Footer Overrides
 - Select Elementor templates for Header/Footer and render via theme hooks (no theme file edits required).
 - Scope controls (WooCommerce only vs Entire site).
@@ -85,6 +89,13 @@ In the **Sherman Product Loop** widget (Elementor editor):
 2. Edit a WooCommerce product.
 3. Open the **Product MSDS** tab and select an MSDS PDF / set optional fields.
 4. Use MSDS Dynamic Tags in Elementor templates.
+
+### Product Attributes Shortcode
+1. Ensure the **Product Attributes** module is enabled in **Sherman Core** settings.
+2. Add the shortcode to your product template:
+   - `[sherman_product_attributes]`
+3. Optional: limit how many attributes are shown:
+   - `[sherman_product_attributes max="9"]`
 
 ## Troubleshooting
 

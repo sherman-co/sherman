@@ -31,6 +31,7 @@ final class Settings {
                     ],
                 ],
                 'msds'              => [ 'enabled' => 'yes' ],
+                'product_attributes'=> [ 'enabled' => 'yes' ],
                 'templates'         => [
                     'enabled' => 'yes',
                     'single_product'  => [ 'enabled' => 'no', 'template_id' => 0 ],
